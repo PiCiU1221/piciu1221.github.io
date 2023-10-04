@@ -1,14 +1,9 @@
-FROM ubuntu:latest AS build
-RUN apt-get update
-RUN apt-get install openjdk-20-jdk -y
+FROM maven:3.9.4-openjdk-20 AS build
 COPY . .
+RUN mvn clean package -DskipTests
+
 
 FROM openjdk:20
-
-WORKDIR /app
-
-COPY target/firesignal-0.0.1-SNAPSHOT.jar app.jar
-
+COPY --from=build /target/firesignal-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
-
-CMD ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
