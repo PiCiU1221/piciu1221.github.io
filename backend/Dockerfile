@@ -1,4 +1,4 @@
-FROM maven:3.9.4-openjdk-20 AS build
+FROM maven:3.9.4-openjdk-20.0.2 AS build
 COPY . .
 RUN mvn clean package -DskipTests
 
