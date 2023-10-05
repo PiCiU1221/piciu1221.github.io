@@ -104,11 +104,11 @@ const NewAlarmContent = () => {
       const apiKey = process.env.NEXT_PUBLIC_OPENROUTESERVICE_API_KEY;
 
       const response = await axios.get(
-        //`https://api.openrouteservice.org/v2/directions/driving-car`,
-        `http://localhost:8081/ors/v2/directions/driving-car`,
+        `https://api.openrouteservice.org/v2/directions/driving-car`,
+        //`http://localhost:8081/ors/v2/directions/driving-car`,
         {
           params: {
-            //api_key: apiKey,
+            api_key: apiKey,
             start: `${geocodedAddress.lon},${geocodedAddress.lat}`,
             end: `${selectedDepartment.departmentLongitude},${selectedDepartment.departmentLatitude}`,
           },
