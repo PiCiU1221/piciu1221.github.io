@@ -58,7 +58,9 @@ const AlarmsContent: React.FC = () => {
     const fetchNextPageCount = async () => {
       try {
         const response = await axios.get<AlarmWithFireDepartments[]>(
-          `/api/get-alarms-pages?page=${page + 1}`,
+          `https://firesignal.onrender.com/api/get-alarms-pages?page=${
+            page + 1
+          }`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
