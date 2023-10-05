@@ -23,7 +23,7 @@ const FireDepartmentsContent: React.FC = () => {
     const fetchFireDepartments = async () => {
       try {
         const response = await axios.get<FireDepartment[]>(
-          `/api/fire-departments?page=${page}`,
+          `https://firesignal.onrender.com/api/fire-departments?page=${page}`,
           {
             headers: {
               Authorization: `Bearer ${token}`, // Include the token in the header
@@ -42,7 +42,9 @@ const FireDepartmentsContent: React.FC = () => {
     const fetchNextPageCount = async () => {
       try {
         const response = await axios.get<FireDepartment[]>(
-          `/api/fire-departments?page=${page + 1}`,
+          `https://firesignal.onrender.com/api/fire-departments?page=${
+            page + 1
+          }`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

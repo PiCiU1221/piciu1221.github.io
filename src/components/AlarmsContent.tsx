@@ -38,7 +38,7 @@ const AlarmsContent: React.FC = () => {
     const fetchAlarmsWithDepartments = async () => {
       try {
         const response = await axios.get<AlarmWithFireDepartments[]>(
-          `/api/get-alarms-pages?page=${page}`,
+          `https://firesignal.onrender.com/api/get-alarms-pages?page=${page}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
