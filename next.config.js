@@ -10,6 +10,7 @@ const nextConfig = {
   },
   trailingSlash: true,
   output: "export",
+  target: "serverless",
 };
 
 module.exports = nextConfig;
