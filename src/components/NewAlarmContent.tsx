@@ -137,7 +137,7 @@ const NewAlarmContent = () => {
     const fetchFireDepartments = async () => {
       try {
         const response = await axios.get<FireDepartment[]>(
-          "/api/fire-departments/all",
+          "https://firesignal.onrender.com/api/fire-departments/all",
           {
             headers: {
               Authorization: `Bearer ${token}`, // Include the token in the header
