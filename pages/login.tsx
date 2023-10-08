@@ -20,6 +20,12 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // Check if the username and password fields are not empty
+    if (!username || !password) {
+      setError("Please enter your username and password.");
+      return;
+    }
+
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
     try {
