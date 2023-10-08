@@ -1,8 +1,6 @@
 import "../styles/globals.css";
 
-import Link from "next/link";
 import React, { useState, useEffect } from "react";
-import Cookies from "js-cookie";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -28,7 +26,7 @@ export default function RegisterPage() {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/auth/register`, {
+      const response = await fetch(`${apiBaseUrl}/api/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
