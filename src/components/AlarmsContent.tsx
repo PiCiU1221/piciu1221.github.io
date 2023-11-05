@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 
@@ -32,13 +32,35 @@ const AlarmsContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true); // Track loading state
 
   const token = Cookies.get("token"); // Get the token from cookies
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  // Define a function to calculate the number of alarms to display based on screen height
+  const calculateAlarmsPerPage = useCallback(() => {
+    // Determine the screen height
+    const screenHeight = window.innerHeight;
+
+    // Calculate the number of alarms displayed
+    if (screenHeight < 500) {
+      return 2;
+    } else if (screenHeight < 600) {
+      return 3;
+    } else if (screenHeight < 700) {
+      return 4;
+    } else if (screenHeight < 900) {
+      return 5;
+    } else {
+      return 6;
+    }
+  }, []);
+
+  const [alarmsPerPage] = useState<number>(calculateAlarmsPerPage());
 
   useEffect(() => {
     // Fetch alarms with fire departments from your backend API
     const fetchAlarmsWithDepartments = async () => {
       try {
         const response = await axios.get<AlarmWithFireDepartments[]>(
-          `https://firesignal.onrender.com/api/get-alarms-pages?page=${page}`,
+          `${apiBaseUrl}/api/alarm/get-alarms-pages?page=${page}&alarmsPerPage=${alarmsPerPage}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -58,9 +80,7 @@ const AlarmsContent: React.FC = () => {
     const fetchNextPageCount = async () => {
       try {
         const response = await axios.get<AlarmWithFireDepartments[]>(
-          `https://firesignal.onrender.com/api/get-alarms-pages?page=${
-            page + 1
-          }`,
+          `${apiBaseUrl}/api/get-alarms-pages?page=${page + 1}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -93,14 +113,14 @@ const AlarmsContent: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen w-full">
-      <h2 className="text-3xl mb-4 ml-6">Alarms</h2>
+    <div className="flex flex-col w-full h-screen px-8">
+      <h2 className="text-4xl mb-4 ml-6 font-semibold">Alarms</h2>
       {isLoading ? ( // Show loading spinner when isLoading is true
         <div className="flex justify-center items-center h-screen">
           <div className="loader"></div> {/* Add a CSS class for a spinner */}
         </div>
       ) : (
-        <div className="flex justify-center flex-1 mt-16">
+        <div className="flex justify-center flex-1 mt-8">
           <div className="w-1/2">
             <ul>
               {alarmsWithDepartments.map((data) => (

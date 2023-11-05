@@ -8,8 +8,9 @@ import Dashboard from "../components/Dashboard";
 import LoadingScreen from "../components/LoadingScreen";
 
 export default function Home() {
-  const [activeMenu, setActiveMenu] = useState("new-alarm"); // Default active menu
+  const [activeMenu, setActiveMenu] = useState("alarms"); // Default active menu
   const [isLoading, setIsLoading] = useState(true);
+  const [renderComponents, setRenderComponents] = useState(false);
 
   useEffect(() => {
     // Retrieve the token from the cookie
@@ -26,8 +27,8 @@ export default function Home() {
       if (tokenPayload.exp && tokenPayload.exp < Date.now() / 1000) {
         handleLogout();
       } else {
-        // If the token exists and is not expired, set isLoading to false
-        setIsLoading(false);
+        // If the token exists and is not expired, set renderComponents to true
+        setRenderComponents(true);
       }
     }
   }, []);
@@ -56,24 +57,27 @@ export default function Home() {
     window.location.href = "/login";
   };
 
+  const handleLoadingComplete = () => {
+    setIsLoading(false);
+  };
+
   return (
     <main>
       <section className="bg-gray-900">
         <div className="flex flex-row h-screen">
-          {isLoading ? (
+          {isLoading && (
             // Render the LoadingScreen while isLoading is true
             <LoadingScreen isLoading={isLoading} />
-          ) : (
-            // Render the sidebar and dashboard once isLoading is false
+          )}
+          {renderComponents && (
             <>
               <Sidebar
                 activeMenu={activeMenu}
                 handleMenuClick={handleMenuClick}
                 handleLogout={handleLogout}
+                handleLoadingComplete={handleLoadingComplete}
               />
-              <div
-                className="flex-1 overflow-y-scroll" // Enable scrolling for the Dashboard
-              >
+              <div className="flex-1">
                 <Dashboard activeMenu={activeMenu} />
               </div>
             </>

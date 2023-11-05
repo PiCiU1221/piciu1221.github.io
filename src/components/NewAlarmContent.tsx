@@ -89,9 +89,9 @@ const NewAlarmContent = () => {
           ...prevNames,
           selectedDepartment.departmentName,
         ]);
-      }
 
-      fetchRoute(selectedDepartment);
+        fetchRoute(selectedDepartment);
+      }
     } else {
       // Deselect all departments
       setSelectedFireDepartments([]);
@@ -100,6 +100,12 @@ const NewAlarmContent = () => {
   };
 
   const fetchRoute = async (selectedDepartment: FireDepartment) => {
+    // Check if geocodedAddress is defined before making the API call
+    if (!geocodedAddress) {
+      console.log("geocodedAddress is undefined. Skipping API call.");
+      return;
+    }
+
     try {
       const apiKey = process.env.NEXT_PUBLIC_OPENROUTESERVICE_API_KEY;
 
@@ -135,9 +141,11 @@ const NewAlarmContent = () => {
   // Fetch fire departments on component mount
   useEffect(() => {
     const fetchFireDepartments = async () => {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
       try {
         const response = await axios.get<FireDepartment[]>(
-          "https://firesignal.onrender.com/api/fire-departments/all",
+          `${apiBaseUrl}/api/fire-departments/all`,
           {
             headers: {
               Authorization: `Bearer ${token}`, // Include the token in the header
@@ -187,11 +195,17 @@ const NewAlarmContent = () => {
       };
 
       try {
-        const response = await axios.post("/api/dispatch", alarmData, {
-          headers: {
-            Authorization: `Bearer ${token}`, // Include the token in the header
-          },
-        });
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+        const response = await axios.post(
+          `${apiBaseUrl}/api/alarm/dispatch`,
+          alarmData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Include the token in the header
+            },
+          }
+        );
         console.log("Alarm dispatched:", response.data);
         // Reset form after successful dispatch
         setAddressInput("");
@@ -209,31 +223,36 @@ const NewAlarmContent = () => {
 
   // Render the NewAlarmContent component
   return (
-    <div className="flex flex-col w-full h-screen p-8">
+    <div className="flex flex-col w-full h-screen px-8">
       <h2 className="text-4xl mb-4 ml-6 font-semibold">New Alarm</h2>
-      <div className="flex justify-center flex-1 mt-8 bg-gray-800">
+      <div className="flex justify-center flex-1 mt-6 bg-gray-800">
         {/* Form for geocoding address */}
-        <div className="flex-3 border p-4" style={{ flex: "0 0 30%" }}>
-          <h3 className="text-lg font-semibold mb-2 text-center">
+        <div
+          className="flex-3 border p-4"
+          style={{ flex: "0 0 30%", display: "flex", flexDirection: "column" }}
+        >
+          <h3 className="text-lg font-semibold mb-4 text-center">
             Alarm Information
           </h3>
-          <form onSubmit={handleSubmit} className="mb-4">
+
+          <form onSubmit={handleSubmit}>
             <label className="block mb-2">Enter Address:</label>
             <input
-              className="text-black border rounded p-1 w-full"
+              className="text-base text-black border rounded p-2 w-full mb-2"
               type="text"
               value={addressInput}
               onChange={(e) => setAddressInput(e.target.value)}
               required
+              placeholder="Enter Address"
             />
-            <button
-              type="submit"
-              className="bg-blue-500 text-white rounded py-1 px-4 mt-2"
-            >
-              Geocode
+            <button className="bg-blue-500 text-white rounded py-2 px-4 w-full">
+              <span className="geocode-button">Geocode</span>
             </button>
           </form>
-          <h3 className="text-lg font-semibold mb-2">Geocoded Address:</h3>
+
+          <h3 className="text-lg font-semibold mb-2 mt-16">
+            Geocoded Address:
+          </h3>
           {geocodedAddress ? (
             <p>{geocodedAddress.display_name}</p>
           ) : (
@@ -241,20 +260,21 @@ const NewAlarmContent = () => {
           )}
 
           {/* Alarm Description */}
-          <div className="mb-4">
+          <div className="mb-4 mt-16" style={{ flexGrow: 1 }}>
             <label className="block mb-2">Alarm Description:</label>
             <textarea
-              className="border rounded p-1 w-full text-black"
+              className="border rounded p-2 w-full h-full text-black resize-none text-base"
               value={alarmDescription}
               onChange={(e) => setAlarmDescription(e.target.value)}
               required
+              placeholder="Enter Alarm Description"
             />
           </div>
 
           {/* Dispatch Button */}
           {dispatchError && <p className="text-red-500">{dispatchError}</p>}
           <button
-            className="bg-blue-500 text-white rounded py-2 px-4 mt-2 w-full"
+            className="bg-blue-500 text-white rounded py-3 px-4 w-full text-xl mt-6 font-semibold"
             onClick={handleDispatch}
           >
             Dispatch
@@ -277,9 +297,10 @@ const NewAlarmContent = () => {
             onMarkerClick={handleMarkerClick}
           />
         </div>
+
         {/* Display selected fire departments */}
         <div className="flex-3 border p-4" style={{ flex: "0 0 30%" }}>
-          <h3 className="text-lg font-semibold mb-2 text-center">
+          <h3 className="text-lg font-semibold mb-4 text-center">
             Selected Fire Departments:
           </h3>
           {selectedFireDepartmentNames.map((name) => (
@@ -302,11 +323,21 @@ const NewAlarmContent = () => {
                       if (department.departmentName === name) {
                         return (
                           <div key={department.departmentId} className="flex">
-                            {department.distance !== undefined && (
-                              <p className="mr-2">
-                                Distance: {department.distance.toFixed(2)}{" "}
-                                kilometers
+                            {geocodedAddress ? (
+                              <p>
+                                Distance:{" "}
+                                {department.distance !== undefined
+                                  ? `${department.distance.toFixed(
+                                      2
+                                    )} kilometers`
+                                  : "Loading..."}
                               </p>
+                            ) : null}
+
+                            {geocodedAddress == undefined && (
+                              <div className="w-full text-center">
+                                <p>You haven't geocoded any address yet.</p>
+                              </div>
                             )}
                           </div>
                         );
@@ -319,12 +350,14 @@ const NewAlarmContent = () => {
                       if (department.departmentName === name) {
                         return (
                           <div key={department.departmentId} className="flex">
-                            {department.duration !== undefined && (
+                            {geocodedAddress ? (
                               <p>
-                                Duration: {department.duration.toFixed(2)}{" "}
-                                minutes
+                                Duration:{" "}
+                                {department.duration !== undefined
+                                  ? department.duration.toFixed(2) + " minutes"
+                                  : "Loading... "}
                               </p>
-                            )}
+                            ) : null}
                           </div>
                         );
                       }

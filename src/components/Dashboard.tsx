@@ -12,7 +12,7 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
   return (
-    <div className="flex flex-col items-center justify-center flex-1 px-6 py-8 mx-auto">
+    <div className="flex flex-col items-center justify-center flex-1 px-6 py-8 mx-auto h-screen">
       {activeMenu === "new-alarm" && <NewAlarmContent />}
       {activeMenu === "alarms" && <AlarmsContent />}
       {activeMenu === "fire-departments" && <FireDepartmentsContent />}

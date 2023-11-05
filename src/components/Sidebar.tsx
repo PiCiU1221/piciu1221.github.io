@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import jwtDecode from "jwt-decode";
 import Cookies from "js-cookie";
+import axios from "axios";
 
 interface JwtPayload {
   sub: string;
@@ -12,28 +13,64 @@ interface SidebarProps {
   activeMenu: string;
   handleMenuClick: (menu: string) => void;
   handleLogout: () => void;
+  handleLoadingComplete: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   activeMenu,
   handleMenuClick,
   handleLogout,
+  handleLoadingComplete,
 }) => {
   // Use state to manage subject and initialize it to an empty string
-  const [subject, setSubject] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [userRole, setUserRole] = useState<string>("");
 
-  // Define a function to fetch and set the subject from cookies
-  const fetchSubjectFromCookies = () => {
+  const fetchUserRole = async (username: string) => {
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+    // Fetch user role from the backend API
+    try {
+      const response = await axios.get(
+        `${apiBaseUrl}/api/auth/user-role?username=${username}`,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("token")}`,
+          },
+        }
+      );
+
+      if (response.data.role) {
+        setUserRole(response.data.role);
+        console.log("userRole: " + response.data);
+      }
+    } catch (error) {
+      console.error("Error during fetching user role:", error);
+    } finally {
+      handleLoadingComplete();
+    }
+  };
+
+  // Define a function to fetch and set the username from cookies
+  const fetchUsernameFromCookies = () => {
     const token = Cookies.get("token");
     const decodedToken = token ? jwtDecode<JwtPayload>(token) : null;
-    const newSubject = decodedToken ? decodedToken.sub : "";
-    setSubject(newSubject);
+    const username = decodedToken ? decodedToken.sub : "";
+    setUsername(username);
+
+    fetchUserRole(username);
   };
 
   // Use useEffect to fetch subject on the client side after initial render
   useEffect(() => {
-    fetchSubjectFromCookies();
+    fetchUsernameFromCookies();
   }, []); // Empty dependency array means this effect runs after the initial render
+
+  useEffect(() => {
+    if (userRole === "ADMIN") {
+      handleMenuClick("new-alarm");
+    }
+  }, [userRole]);
 
   return (
     <aside className="bg-gray-800 h-screen flex flex-col p-6">
@@ -46,14 +83,16 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Menu Options */}
       <nav className="flex-1">
         <ul className="space-y-4 mt-4">
-          <li
-            onClick={() => handleMenuClick("new-alarm")}
-            className={`px-4 py-2 text-white ${
-              activeMenu === "new-alarm" ? "bg-primary-500" : ""
-            } hover:bg-primary-500 hover:text-white cursor-pointer`}
-          >
-            New Alarm
-          </li>
+          {userRole == "ADMIN" && (
+            <li
+              onClick={() => handleMenuClick("new-alarm")}
+              className={`px-4 py-2 text-white ${
+                activeMenu === "new-alarm" ? "bg-primary-500" : ""
+              } hover:bg-primary-500 hover:text-white cursor-pointer`}
+            >
+              New Alarm
+            </li>
+          )}
           <li
             onClick={() => handleMenuClick("alarms")}
             className={`px-4 py-2 text-white ${
@@ -90,9 +129,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* Display Username */}
-      {subject && ( // Render only if subject is available
+      {username && ( // Render only if username is available
         <div className="text-white text-sm text-center font-semibold mb-1">
-          Welcome, {subject}
+          Welcome, {username}
         </div>
       )}
 

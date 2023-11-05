@@ -16,14 +16,16 @@ const FireDepartmentsContent: React.FC = () => {
     useState<FireDepartment | null>(null);
 
   const [nextPageCount, setNextPageCount] = useState<number>(0); // Store the number of alarms on the next page
+
   const token = Cookies.get("token"); // Get the token from cookies
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   useEffect(() => {
     // Fetch fire departments from your backend API
     const fetchFireDepartments = async () => {
       try {
         const response = await axios.get<FireDepartment[]>(
-          `https://firesignal.onrender.com/api/fire-departments?page=${page}`,
+          `${apiBaseUrl}/api/fire-departments?page=${page}`,
           {
             headers: {
               Authorization: `Bearer ${token}`, // Include the token in the header
@@ -42,9 +44,7 @@ const FireDepartmentsContent: React.FC = () => {
     const fetchNextPageCount = async () => {
       try {
         const response = await axios.get<FireDepartment[]>(
-          `https://firesignal.onrender.com/api/fire-departments?page=${
-            page + 1
-          }`,
+          `${apiBaseUrl}/api/fire-departments?page=${page + 1}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
