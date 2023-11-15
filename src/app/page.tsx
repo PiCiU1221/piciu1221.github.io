@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 
-import Sidebar from "../components/Sidebar";
-import Dashboard from "../components/Dashboard";
-import LoadingScreen from "../components/LoadingScreen";
+import Sidebar from "../components/MainComponents/Sidebar";
+import Dashboard from "../components/MainComponents/Dashboard";
+import LoadingScreen from "../components/Helpers/LoadingScreen";
 
 export default function Home() {
   const [activeMenu, setActiveMenu] = useState("alarms"); // Default active menu
@@ -64,7 +64,7 @@ export default function Home() {
   return (
     <main>
       <section className="bg-gray-900">
-        <div className="flex flex-row h-screen">
+        <div className="flex flex-row h-screen overflow-hidden">
           {isLoading && (
             // Render the LoadingScreen while isLoading is true
             <LoadingScreen isLoading={isLoading} />
@@ -77,7 +77,7 @@ export default function Home() {
                 handleLogout={handleLogout}
                 handleLoadingComplete={handleLoadingComplete}
               />
-              <div className="flex-1">
+              <div className="flex-1 overflow-y-auto">
                 <Dashboard activeMenu={activeMenu} />
               </div>
             </>

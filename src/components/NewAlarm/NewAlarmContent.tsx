@@ -40,6 +40,7 @@ const NewAlarmContent = () => {
   // Handle form submission to geocode the address
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     try {
       const response = await axios.get<any[]>(
         `https://nominatim.openstreetmap.org/search`,
@@ -64,6 +65,10 @@ const NewAlarmContent = () => {
 
   // Handle clicking on a fire department marker
   const handleMarkerClick = (selectedDepartment: FireDepartment | null) => {
+    if (!geocodedAddress) {
+      return;
+    }
+
     if (selectedDepartment) {
       // Check if the department is already selected
       const isAlreadySelected = selectedFireDepartments.some(
@@ -168,6 +173,11 @@ const NewAlarmContent = () => {
       return;
     }
 
+    if (!alarmDescription) {
+      setDispatchError("Please add alarm description.");
+      return;
+    }
+
     if (selectedFireDepartments.length === 0) {
       setDispatchError("Please select at least one fire department.");
       return;
@@ -224,7 +234,7 @@ const NewAlarmContent = () => {
   // Render the NewAlarmContent component
   return (
     <div className="flex flex-col w-full h-screen px-8">
-      <h2 className="text-4xl mb-4 ml-6 font-semibold">New Alarm</h2>
+      <h2 className="text-3xl mb-4 ml-6 font-semibold">New Alarm</h2>
       <div className="flex justify-center flex-1 mt-6 bg-gray-800">
         {/* Form for geocoding address */}
         <div
@@ -260,21 +270,26 @@ const NewAlarmContent = () => {
           )}
 
           {/* Alarm Description */}
-          <div className="mb-4 mt-16" style={{ flexGrow: 1 }}>
+          <div className="mb-8 mt-16 flex-grow">
             <label className="block mb-2">Alarm Description:</label>
             <textarea
               className="border rounded p-2 w-full h-full text-black resize-none text-base"
               value={alarmDescription}
               onChange={(e) => setAlarmDescription(e.target.value)}
               required
+              spellCheck={false}
               placeholder="Enter Alarm Description"
             />
           </div>
 
           {/* Dispatch Button */}
-          {dispatchError && <p className="text-red-500">{dispatchError}</p>}
+          {dispatchError && (
+            <p className="text-red-500 mt-4 border border-red-500 p-2 rounded-md">
+              {dispatchError}
+            </p>
+          )}
           <button
-            className="bg-blue-500 text-white rounded py-3 px-4 w-full text-xl mt-6 font-semibold"
+            className="bg-blue-500 text-white rounded mt-4 py-3 px-4 w-full text-xl font-semibold"
             onClick={handleDispatch}
           >
             Dispatch

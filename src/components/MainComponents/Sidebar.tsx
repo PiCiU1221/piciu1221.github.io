@@ -42,7 +42,6 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       if (response.data.role) {
         setUserRole(response.data.role);
-        console.log("userRole: " + response.data);
       }
     } catch (error) {
       console.error("Error during fetching user role:", error);

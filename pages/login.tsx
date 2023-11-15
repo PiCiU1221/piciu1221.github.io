@@ -1,4 +1,5 @@
 import "../styles/globals.css";
+import "../styles/LoadingScreen.css";
 
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
@@ -8,6 +9,8 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showServerStartup, setShowServerStartup] = useState(false);
 
   useEffect(() => {
     // Check if the user is authenticated (e.g., valid token in cookies)
@@ -17,6 +20,16 @@ export default function LoginPage() {
     }
   }, []);
 
+  useEffect(() => {
+    const startTimeout = setTimeout(() => {
+      if (isLoading) {
+        setShowServerStartup(true);
+      }
+    }, 1000);
+
+    return () => clearTimeout(startTimeout);
+  }, [isLoading]);
+
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -25,6 +38,8 @@ export default function LoginPage() {
       setError("Please enter your username and password.");
       return;
     }
+
+    setIsLoading(true);
 
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -38,24 +53,42 @@ export default function LoginPage() {
       });
 
       if (response.ok) {
-        const token = await response.text();
-        Cookies.set("token", token, { expires: 1 }); // Store the token in a cookie with an expiration of one day
+        const apiResponse = await response.json();
 
-        window.location.href = "/"; // Redirect to the desired route
+        if (apiResponse.success) {
+          // Assuming the JWT token is in the 'data' field of the response
+          Cookies.set("token", apiResponse.data, { expires: 1 }); // Store the token in a cookie with an expiration of one day
+          setIsLoading(false);
+          window.location.href = "/"; // Redirect to the desired route
+        } else {
+          // Handle authentication failure
+          setError(apiResponse.message || "An error occurred during login.");
+          setIsLoading(false);
+        }
       } else {
+        const responseBody = await response.json();
+
         if (response.status === 401) {
           // Unauthorized, i.e., invalid credentials
           setError(
-            "Invalid credentials. Please check your username and password."
+            responseBody.message ||
+              "Invalid credentials. Please check your username and password."
           );
         } else {
           // Handle server errors differently
-          setError("An error occurred during login. Please try again later.");
+          setError(
+            responseBody.message ||
+              "An error occurred during login. Please try again later."
+          );
         }
+
+        setIsLoading(false);
       }
     } catch (error) {
       console.error("Error during login:", error);
       setError("An error occurred during login. Please try again later.");
+
+      setIsLoading(false);
     }
   };
 
@@ -73,94 +106,110 @@ export default function LoginPage() {
           </div>
           <div className="w-full rounded-lg shadow border md:mt-0 sm:max-w-md xl:p-0 bg-gray-800 border-gray-700">
             <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-              <h1 className="text-xl font-bold leading-tight tracking-tight md:text-2xl text-white">
-                Sign in to your account
-              </h1>
-              <form
-                className="space-y-4 md:space-y-6"
-                onSubmit={handleLogin}
-                action="/api/auth/authenticate"
-              >
-                <div>
-                  <label
-                    htmlFor="username"
-                    className="block mb-2 text-sm font-medium text-white"
-                  >
-                    Your username
-                  </label>
-                  <input
-                    type="text"
-                    name="username"
-                    id="username"
-                    className="bg-gray-50 border border-gray-300 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="username"
-                    value={username} // Set the value to the state variable
-                    onChange={(e) => setUsername(e.target.value)} // Update the state on change
-                  ></input>
+              {showServerStartup ? (
+                <div className="w-full mb-4 flex flex-col items-center justify-center text-white text-center">
+                  <div className="flex justify-center items-center flex-grow mt-8 mb-4">
+                    <div className="loader"></div>
+                  </div>
+                  <div className="text-lg font-bold mt-8">
+                    The server is starting up. Please wait...
+                  </div>
+                  <div className="text-base text-gray-400 mt-2">
+                    This may take up to a minute.
+                  </div>
                 </div>
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="block mb-2 text-sm font-medium text-white"
+              ) : (
+                <>
+                  <h1 className="text-xl font-bold leading-tight tracking-tight md:text-2xl text-white">
+                    Sign in to your account
+                  </h1>
+                  <form
+                    className="space-y-4 md:space-y-6"
+                    onSubmit={handleLogin}
+                    action="/api/auth/authenticate"
                   >
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    placeholder="••••••••"
-                    className={`bg-gray-50 border ${
-                      error ? "border-red-500" : "border-gray-300"
-                    } sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 bg-gray-700 ${
-                      error ? "placeholder-red-500" : "placeholder-gray-400"
-                    } text-white focus:ring-blue-500 focus:border-blue-500`}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  ></input>
-                  {error && (
-                    <p className="mt-1 text-sm text-red-500">{error}</p>
-                  )}
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-start">
-                    <div className="flex items-center h-5">
+                    <div>
+                      <label
+                        htmlFor="username"
+                        className="block mb-2 text-sm font-medium text-white"
+                      >
+                        Your username
+                      </label>
                       <input
-                        id="remember"
-                        aria-describedby="remember"
-                        type="checkbox"
-                        className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 bg-gray-700 border-gray-600 focus:ring-primary-600 ring-offset-gray-800"
+                        type="text"
+                        name="username"
+                        id="username"
+                        className="bg-gray-50 border border-gray-300 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 bg-gray-700 border-gray-600 placeholder-gray-400 text-white focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="username"
+                        value={username} // Set the value to the state variable
+                        onChange={(e) => setUsername(e.target.value)} // Update the state on change
                       ></input>
                     </div>
-                    <div className="ml-3 text-sm">
-                      <label htmlFor="remember" className="text-gray-300">
-                        Remember me
+                    <div>
+                      <label
+                        htmlFor="password"
+                        className="block mb-2 text-sm font-medium text-white"
+                      >
+                        Password
                       </label>
+                      <input
+                        type="password"
+                        name="password"
+                        id="password"
+                        placeholder="••••••••"
+                        className={`bg-gray-50 border ${
+                          error ? "border-red-500" : "border-gray-300"
+                        } sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 bg-gray-700 ${
+                          error ? "placeholder-red-500" : "placeholder-gray-400"
+                        } text-white focus:ring-blue-500 focus:border-blue-500`}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      ></input>
+                      {error && (
+                        <p className="mt-1 text-sm text-red-500">{error}</p>
+                      )}
                     </div>
-                  </div>
-                  <Link
-                    href="/forgot-password"
-                    className="text-sm font-medium hover:underline text-red-700"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-                <button
-                  type="submit"
-                  className="w-full text-white bg-primary-500 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
-                >
-                  Sign in
-                </button>
-                <p className="text-sm font-light text-gray-400">
-                  Don’t have an account yet?{" "}
-                  <a
-                    href="/register"
-                    className="font-medium hover:underline text-red-700"
-                  >
-                    Register
-                  </a>
-                </p>
-              </form>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-start">
+                        <div className="flex items-center h-5">
+                          <input
+                            id="remember"
+                            aria-describedby="remember"
+                            type="checkbox"
+                            className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 bg-gray-700 border-gray-600 focus:ring-primary-600 ring-offset-gray-800"
+                          ></input>
+                        </div>
+                        <div className="ml-3 text-sm">
+                          <label htmlFor="remember" className="text-gray-300">
+                            Remember me
+                          </label>
+                        </div>
+                      </div>
+                      <Link
+                        href="/forgot-password"
+                        className="text-sm font-medium hover:underline text-red-700"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full text-white bg-primary-500 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                    >
+                      Sign in
+                    </button>
+                    <p className="text-sm font-light text-gray-400">
+                      Don’t have an account yet?{" "}
+                      <a
+                        href="/register"
+                        className="font-medium hover:underline text-red-700"
+                      >
+                        Register
+                      </a>
+                    </p>
+                  </form>
+                </>
+              )}
             </div>
           </div>
         </div>

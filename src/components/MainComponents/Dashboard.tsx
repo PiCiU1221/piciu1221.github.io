@@ -1,10 +1,10 @@
 import React from "react";
 
-import NewAlarmContent from "./NewAlarmContent";
-import AlarmsContent from "./AlarmsContent";
-import FireDepartmentsContent from "./FireDepartmentsContent";
-import FireEnginesContent from "./FireEnginesContent";
-import FirefightersContent from "./FirefightersContent";
+import NewAlarmContent from "../NewAlarm/NewAlarmContent";
+import AlarmsContent from "../AlarmsContent";
+import FireDepartmentsContent from "../FireDepartments/FireDepartmentsContent";
+import FireEnginesContent from "../FireEnginesContent";
+import FirefightersContent from "../FirefightersContent";
 
 interface DashboardProps {
   activeMenu: string;

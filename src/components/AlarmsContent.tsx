@@ -80,7 +80,7 @@ const AlarmsContent: React.FC = () => {
     const fetchNextPageCount = async () => {
       try {
         const response = await axios.get<AlarmWithFireDepartments[]>(
-          `${apiBaseUrl}/api/get-alarms-pages?page=${page + 1}`,
+          `${apiBaseUrl}/api/alarm/get-alarms-pages?page=${page + 1}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -114,9 +114,9 @@ const AlarmsContent: React.FC = () => {
 
   return (
     <div className="flex flex-col w-full h-screen px-8">
-      <h2 className="text-4xl mb-4 ml-6 font-semibold">Alarms</h2>
+      <h2 className="text-3xl mb-4 ml-6 font-semibold">Alarms</h2>
       {isLoading ? ( // Show loading spinner when isLoading is true
-        <div className="flex justify-center items-center h-screen">
+        <div className="flex justify-center items-center flex-grow">
           <div className="loader"></div> {/* Add a CSS class for a spinner */}
         </div>
       ) : (
@@ -129,7 +129,7 @@ const AlarmsContent: React.FC = () => {
                   className="mb-2 flex justify-center"
                 >
                   <button
-                    className={`w-full bg-gray-800 text-white p-2 rounded-lg border border-gray-300 `}
+                    className={`w-full bg-gray-800 text-white p-2 rounded-lg border border-gray-300`}
                     onClick={() => handleAlarmClick(data.alarm)}
                     style={{
                       height: selectedAlarm === data.alarm ? "auto" : "4rem", // Adjust the height as needed

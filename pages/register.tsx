@@ -26,7 +26,7 @@ export default function RegisterPage() {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/user/register-user`, {
+      const response = await fetch(`${apiBaseUrl}/api/user/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -38,11 +38,20 @@ export default function RegisterPage() {
         // Registration was successful, redirect to the login page
         window.location.href = "/login";
       } else {
-        if (response.status === 401) {
-          // Unauthorized, i.e., invalid credentials
-          setError("Username is already in use.");
+        // Handle different HTTP status codes
+        const responseBody = await response.json(); // Parse JSON response
+
+        if (response.status === 400) {
+          // Bad Request (e.g., validation error)
+          setError(
+            responseBody.message ||
+              "Invalid registration data. Please check your input."
+          );
+        } else if (response.status === 409) {
+          // Conflict (e.g., username already in use)
+          setError(responseBody.message || "Username is already in use.");
         } else {
-          // Handle server errors differently
+          // Handle other server errors
           setError(
             "An error occurred during registration. Please try again later."
           );
