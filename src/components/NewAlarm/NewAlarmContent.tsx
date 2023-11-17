@@ -406,37 +406,40 @@ const NewAlarmContent = () => {
         </div>
       )}
 
-      <div className="bg-yellow-600 text-white py-4 px-6 rounded absolute bottom-4 right-4 w-96 h-96 flex flex-col">
-        <span className="mb-auto mt-auto">
-          To test the dispatch, use this website to open the desktop app in the
-          browser:
-          <br />
-          <br />
-          <a
-            href="https://firesignaldesktopapp.onrender.com"
-            className="text-blue-500 underline"
+      {/* Startup Popup */}
+      {showStartupPopup && (
+        <div className="bg-yellow-600 text-white py-4 px-6 rounded absolute bottom-4 right-4 w-96 h-96 flex flex-col">
+          <span className="mb-auto mt-auto">
+            To test the dispatch, use this website to open the desktop app in
+            the browser:
+            <br />
+            <br />
+            <a
+              href="https://firesignaldesktopapp.onrender.com"
+              className="text-blue-500 underline"
+            >
+              firesignaldesktopapp.onrender.com
+            </a>
+            <br />
+            <br />
+            Use this test account:
+            <br />
+            <strong>Username:</strong> anowak
+            <br />
+            <strong>Password:</strong> anowak
+            <br />
+            <br />
+            then dispatch an alarm for the fire department in the middle of
+            Stargard.
+          </span>
+          <button
+            className="text-white absolute top-2 right-2 focus:outline-none"
+            onClick={() => setShowStartupPopup(false)}
           >
-            firesignaldesktopapp.onrender.com
-          </a>
-          <br />
-          <br />
-          Use this test account:
-          <br />
-          <strong>Username:</strong> anowak
-          <br />
-          <strong>Password:</strong> anowak
-          <br />
-          <br />
-          then dispatch an alarm for the fire department in the middle of
-          Stargard.
-        </span>
-        <button
-          className="text-white absolute top-2 right-2 focus:outline-none"
-          onClick={() => setShowStartupPopup(false)}
-        >
-          <FaTimes />
-        </button>
-      </div>
+            <FaTimes />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

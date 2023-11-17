@@ -5,12 +5,15 @@ import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 
+import { FaTimes } from "react-icons/fa";
+
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showServerStartup, setShowServerStartup] = useState(false);
+  const [showStartupPopup, setShowStartupPopup] = useState(true);
 
   useEffect(() => {
     // Check if the user is authenticated (e.g., valid token in cookies)
@@ -213,6 +216,26 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
+
+        {/* Startup Popup */}
+        {showStartupPopup && (
+          <div className="bg-yellow-600 text-white py-4 px-6 rounded absolute bottom-4 right-4 w-96 h-40 flex flex-col">
+            <span className="text-lg mb-auto mt-auto text-center">
+              Admin test account credentials:
+              <br />
+              <br />
+              <strong>Username:</strong> admin
+              <br />
+              <strong>Password:</strong> admin
+            </span>
+            <button
+              className="text-white absolute top-2 right-2 focus:outline-none"
+              onClick={() => setShowStartupPopup(false)}
+            >
+              <FaTimes />
+            </button>
+          </div>
+        )}
       </section>
     </main>
   );
