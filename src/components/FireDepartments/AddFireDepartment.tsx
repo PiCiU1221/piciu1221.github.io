@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import axios from "axios";
 import Cookies from "js-cookie";
 
 import { FaCheckSquare, FaRegSquare } from "react-icons/fa";
+import { FaTimes } from "react-icons/fa";
 
 // Load FireDepartmentGeocodingMap dynamically
 const FireDepartmentGeocodingMapDynamic = dynamic(
@@ -29,10 +30,23 @@ const AddFireDepartment: React.FC = () => {
   const [isCommander, setIsCommander] = useState<boolean>(false);
   const [isTechnicalRescue, setIsTechnicalRescue] = useState<boolean>(false);
   const [departmentName, setDepartmentName] = useState<string>("");
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>("");
   const [userExist, setUserExist] = useState<boolean>();
+  const [showSuccessPopup, setShowSuccessPopup] = useState<boolean>(false);
 
   const token = Cookies.get("token"); // Get the token from cookies
+
+  useEffect(() => {
+    if (showSuccessPopup) {
+      // Automatically hide the popup after 5 seconds
+      const timeoutId = setTimeout(() => {
+        setShowSuccessPopup(false);
+      }, 5000);
+
+      // Clear the timeout when the component unmounts or when the popup is manually closed
+      return () => clearTimeout(timeoutId);
+    }
+  }, [showSuccessPopup]);
 
   const handleGeocode = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -86,6 +100,38 @@ const AddFireDepartment: React.FC = () => {
     if (userExist === null || userExist === false) {
       setSubmitError("Please check the username");
       return;
+    }
+
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+    try {
+      const response = await axios.post(
+        `${apiBaseUrl}/api/fire-departments/add`,
+        {
+          departmentName,
+          departmentCity: geocodedAddress.address.city,
+          departmentStreet: geocodedAddress.address.street,
+          departmentLatitude: parseFloat(geocodedAddress.lat),
+          departmentLongitude: parseFloat(geocodedAddress.lon),
+          chiefUsername,
+          chiefFirstName,
+          chiefSecondName,
+          isDriver,
+          isCommander,
+          isTechnicalRescue,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Include the token in the header
+          },
+        }
+      );
+
+      console.log(response.data);
+      setShowSuccessPopup(true);
+    } catch (error) {
+      console.error("Error adding fire department:", error);
+      setSubmitError("An error occurred while adding the fire department.");
     }
   };
 
@@ -273,6 +319,21 @@ const AddFireDepartment: React.FC = () => {
           </button>
         </form>
       </div>
+
+      {/* Success Popup */}
+      {showSuccessPopup && (
+        <div className="bg-green-500 text-white py-4 px-6 rounded absolute bottom-4 right-4 w-96 h-32 flex flex-col">
+          <span className="mb-auto mt-auto text-center">
+            Fire department added successfully!
+          </span>
+          <button
+            className="text-white absolute top-2 right-2 focus:outline-none"
+            onClick={() => setShowSuccessPopup(false)}
+          >
+            <FaTimes />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

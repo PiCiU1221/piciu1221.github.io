@@ -3,6 +3,8 @@ import axios from "axios";
 import dynamic from "next/dynamic";
 import Cookies from "js-cookie";
 
+import { FaTimes } from "react-icons/fa";
+
 // Load MapDisplay dynamically
 const MapDisplayDynamic = dynamic(() => import("./MapDisplay"), {
   loading: () => <p>Loading Map...</p>,
@@ -34,6 +36,8 @@ const NewAlarmContent = () => {
     useState<string[]>([]);
   const [alarmDescription, setAlarmDescription] = useState<string>("");
   const [dispatchError, setDispatchError] = useState<string | null>(null);
+  const [showSuccessPopup, setShowSuccessPopup] = useState<boolean>(false);
+  const [showStartupPopup, setShowStartupPopup] = useState(true);
 
   const token = Cookies.get("token"); // Get the token from cookies
 
@@ -217,6 +221,8 @@ const NewAlarmContent = () => {
           }
         );
         console.log("Alarm dispatched:", response.data);
+        setShowSuccessPopup(true);
+
         // Reset form after successful dispatch
         setAddressInput("");
         setGeocodedAddress(null);
@@ -384,6 +390,52 @@ const NewAlarmContent = () => {
             </div>
           ))}
         </div>
+      </div>
+      {/* Success Popup */}
+      {showSuccessPopup && (
+        <div className="bg-green-500 text-white py-4 px-6 rounded absolute bottom-4 right-4 w-96 h-32 flex flex-col">
+          <span className="mb-auto mt-auto text-center">
+            Fire department added successfully!
+          </span>
+          <button
+            className="text-white absolute top-2 right-2 focus:outline-none"
+            onClick={() => setShowSuccessPopup(false)}
+          >
+            <FaTimes />
+          </button>
+        </div>
+      )}
+
+      <div className="bg-yellow-600 text-white py-4 px-6 rounded absolute bottom-4 right-4 w-96 h-96 flex flex-col">
+        <span className="mb-auto mt-auto">
+          To test the dispatch, use this website to open the desktop app in the
+          browser:
+          <br />
+          <br />
+          <a
+            href="https://firesignaldesktopapp.onrender.com"
+            className="text-blue-500 underline"
+          >
+            firesignaldesktopapp.onrender.com
+          </a>
+          <br />
+          <br />
+          Use this test account:
+          <br />
+          <strong>Username:</strong> anowak
+          <br />
+          <strong>Password:</strong> anowak
+          <br />
+          <br />
+          then dispatch an alarm for the fire department in the middle of
+          Stargard.
+        </span>
+        <button
+          className="text-white absolute top-2 right-2 focus:outline-none"
+          onClick={() => setShowStartupPopup(false)}
+        >
+          <FaTimes />
+        </button>
       </div>
     </div>
   );
