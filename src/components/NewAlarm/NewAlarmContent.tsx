@@ -417,6 +417,7 @@ const NewAlarmContent = () => {
             <a
               href="https://firesignaldesktopapp.onrender.com"
               className="text-blue-500 underline"
+              target="_blank"
             >
               firesignaldesktopapp.onrender.com
             </a>
