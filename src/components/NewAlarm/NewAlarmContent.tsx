@@ -422,6 +422,8 @@ const NewAlarmContent = () => {
               firesignaldesktopapp.onrender.com
             </a>
             <br />
+            (It might take a minute for the server to start)
+            <br />
             <br />
             Use this test account:
             <br />
