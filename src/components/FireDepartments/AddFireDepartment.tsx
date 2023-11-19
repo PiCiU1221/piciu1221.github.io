@@ -91,7 +91,11 @@ const AddFireDepartment: React.FC = () => {
     }
   };
 
-  const handleAddFireDepartment = async () => {
+  const handleAddFireDepartment = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+
     if (!geocodedAddress) {
       setSubmitError("Please geolocate an address.");
       return;
@@ -102,24 +106,35 @@ const AddFireDepartment: React.FC = () => {
       return;
     }
 
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    // Split the display_name by comma
+    const addressComponents = geocodedAddress.display_name.split(",");
+
+    // Extract the street (index 1) and city (index 4) values
+    const street =
+      addressComponents[1].trim() + " " + addressComponents[0].trim();
+    const city = addressComponents[4].trim();
+
+    // Prepare the data without making the actual request
+    const requestData = {
+      departmentName,
+      departmentCity: city,
+      departmentStreet: street,
+      departmentLatitude: parseFloat(geocodedAddress.lat).toFixed(8),
+      departmentLongitude: parseFloat(geocodedAddress.lon).toFixed(8),
+      chiefUsername,
+      chiefFirstName,
+      chiefSecondName,
+      isDriver,
+      isCommander,
+      isTechnicalRescue,
+    };
 
     try {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
       const response = await axios.post(
         `${apiBaseUrl}/api/fire-departments/add`,
-        {
-          departmentName,
-          departmentCity: geocodedAddress.address.city,
-          departmentStreet: geocodedAddress.address.street,
-          departmentLatitude: parseFloat(geocodedAddress.lat),
-          departmentLongitude: parseFloat(geocodedAddress.lon),
-          chiefUsername,
-          chiefFirstName,
-          chiefSecondName,
-          isDriver,
-          isCommander,
-          isTechnicalRescue,
-        },
+        requestData,
         {
           headers: {
             Authorization: `Bearer ${token}`, // Include the token in the header
@@ -127,11 +142,33 @@ const AddFireDepartment: React.FC = () => {
         }
       );
 
-      console.log(response.data);
-      setShowSuccessPopup(true);
-    } catch (error) {
-      console.error("Error adding fire department:", error);
-      setSubmitError("An error occurred while adding the fire department.");
+      // Check if the request was successful
+      if (response.status === 200) {
+        const responseData = response.data;
+        console.log("Response Data:", responseData);
+
+        // Reset input fields
+        setAddressInput("");
+        setGeocodedAddress(null);
+        setChiefUsername("");
+        setChiefFirstName("");
+        setChiefSecondName("");
+        setIsDriver(false);
+        setIsCommander(false);
+        setIsTechnicalRescue(false);
+        setDepartmentName("");
+
+        // Show success popup
+        setShowSuccessPopup(true);
+        setSubmitError(null); // Clear any previous error
+      } else {
+        const errorText = response.data || "Unknown error";
+        setSubmitError(`Error: ${errorText}`);
+        console.error("Error:", errorText);
+      }
+    } catch (error: any) {
+      setSubmitError(`Error: ${error.message}`);
+      console.error("Error:", error.message);
     }
   };
 
