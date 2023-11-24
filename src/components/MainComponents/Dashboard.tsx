@@ -53,8 +53,6 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
     } catch (error) {
       console.error("Error during fetching user data:", error);
       setError("Error fetching user data");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -71,6 +69,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
         );
 
         setHasFireDepartment(response.data.data);
+        setIsLoading(false);
       }
     } catch (error) {
       console.error("Error checking fire department:", error);
@@ -89,10 +88,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
     fetchData();
   }, [username, userRole]);
 
-  // Use a loading state to determine whether to render the loading screen or the content
-  const isContentLoading = isLoading || username === "" || userRole === "";
-
-  if (isContentLoading) {
+  if (isLoading) {
     return <LoadingScreen isLoading={isLoading} />;
   }
 
