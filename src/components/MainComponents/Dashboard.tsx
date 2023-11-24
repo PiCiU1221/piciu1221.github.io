@@ -79,14 +79,12 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
   };
 
   useEffect(() => {
-    fetchUserData();
-  }, []);
+    const fetchData = async () => {
+      await Promise.all([fetchUserData(), checkFireDepartment()]);
+    };
 
-  useEffect(() => {
-    if (username !== "" && userRole !== "") {
-      checkFireDepartment();
-    }
-  }, [username, userRole]);
+    fetchData();
+  }, []);
 
   if (isLoading) {
     return <LoadingScreen isLoading={isLoading} />;
