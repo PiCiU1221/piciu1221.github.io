@@ -88,7 +88,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
     }
   }, [username, userRole]);
 
-  if (isLoading) {
+  if (isLoading || userRole === "") {
     return <LoadingScreen isLoading={isLoading} />;
   } else if (error) {
     return (
