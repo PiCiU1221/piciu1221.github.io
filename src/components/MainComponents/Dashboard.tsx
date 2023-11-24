@@ -79,14 +79,12 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
   };
 
   useEffect(() => {
-    fetchUserData();
-  }, []);
+    const fetchData = async () => {
+      await Promise.all([fetchUserData(), checkFireDepartment()]);
+    };
 
-  useEffect(() => {
-    if (username !== "" && userRole !== "") {
-      checkFireDepartment();
-    }
-  }, [username, userRole]);
+    fetchData();
+  }, []);
 
   if (isLoading || userRole === "") {
     return <LoadingScreen isLoading={isLoading} />;
@@ -97,11 +95,8 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
       </div>
     );
   } else if (!hasFireDepartment && userRole !== "ADMIN") {
-    return (
-      <div className="flex items-center justify-center flex-1 px-6 py-8 mx-auto h-screen text-2xl">
-        <p>Contact your fire chief to assign you to a fire department.</p>
-      </div>
-    );
+    // Add a check to prevent rendering when the loading state is still true
+    return isLoading ? <LoadingScreen isLoading={isLoading} /> : null;
   } else {
     return (
       <div className="flex flex-col items-center justify-center flex-1 px-6 py-8 mx-auto h-screen">
