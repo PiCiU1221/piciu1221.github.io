@@ -54,10 +54,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
       console.error("Error during fetching user data:", error);
       setError("Error fetching user data");
     } finally {
-      // Loading is set to false only if both userRole and hasFireDepartment are set
-      if (userRole !== "" && (userRole === "ADMIN" || hasFireDepartment)) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     }
   };
 
@@ -78,35 +75,28 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
     } catch (error) {
       console.error("Error checking fire department:", error);
       setError("Error checking fire department");
-    } finally {
-      // Loading is set to false only if both userRole and hasFireDepartment are set
-      if (userRole !== "" && (userRole === "ADMIN" || hasFireDepartment)) {
-        setIsLoading(false);
-      }
     }
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      await Promise.all([fetchUserData(), checkFireDepartment()]);
-    };
-
-    fetchData();
+    fetchUserData();
   }, []);
+
+  useEffect(() => {
+    if (username !== "" && userRole !== "") {
+      checkFireDepartment();
+    }
+  }, [username, userRole]);
 
   if (isLoading) {
     return <LoadingScreen isLoading={isLoading} />;
-  }
-
-  if (error) {
+  } else if (error) {
     return (
       <div className="flex items-center justify-center flex-1 px-6 py-8 mx-auto h-screen text-2xl">
         <p>{error}</p>
       </div>
     );
-  }
-
-  if (!hasFireDepartment && userRole !== "ADMIN") {
+  } else if (!hasFireDepartment && userRole !== "ADMIN") {
     return (
       <div className="flex items-center justify-center flex-1 px-6 py-8 mx-auto h-screen text-2xl">
         <p>Contact your fire chief to assign you to a fire department.</p>
