@@ -54,7 +54,10 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
       console.error("Error during fetching user data:", error);
       setError("Error fetching user data");
     } finally {
-      setIsLoading(false);
+      // Loading is set to false only if both userRole and hasFireDepartment are set
+      if (userRole !== "" && (userRole === "ADMIN" || hasFireDepartment)) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -75,6 +78,11 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
     } catch (error) {
       console.error("Error checking fire department:", error);
       setError("Error checking fire department");
+    } finally {
+      // Loading is set to false only if both userRole and hasFireDepartment are set
+      if (userRole !== "" && (userRole === "ADMIN" || hasFireDepartment)) {
+        setIsLoading(false);
+      }
     }
   };
 
