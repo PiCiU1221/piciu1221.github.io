@@ -79,45 +79,40 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      await fetchUserData();
-      if (username !== "" && userRole !== "") {
-        await checkFireDepartment();
-      }
-    };
+    fetchUserData();
+  }, []);
 
-    fetchData();
+  useEffect(() => {
+    if (username !== "" && userRole !== "") {
+      checkFireDepartment();
+    }
   }, [username, userRole]);
 
-  if (isLoading) {
+  if (isLoading || userRole === "") {
     return <LoadingScreen isLoading={isLoading} />;
-  }
-
-  if (error) {
+  } else if (error) {
     return (
       <div className="flex items-center justify-center flex-1 px-6 py-8 mx-auto h-screen text-2xl">
         <p>{error}</p>
       </div>
     );
-  }
-
-  if (!hasFireDepartment && userRole !== "ADMIN") {
+  } else if (!hasFireDepartment && userRole !== "ADMIN") {
     return (
       <div className="flex items-center justify-center flex-1 px-6 py-8 mx-auto h-screen text-2xl">
         <p>Contact your fire chief to assign you to a fire department.</p>
       </div>
     );
+  } else {
+    return (
+      <div className="flex flex-col items-center justify-center flex-1 px-6 py-8 mx-auto h-screen">
+        {activeMenu === "new-alarm" && <NewAlarmContent />}
+        {activeMenu === "alarms" && <AlarmsContent />}
+        {activeMenu === "fire-departments" && <FireDepartmentsContent />}
+        {activeMenu === "fire-engines" && <FireEnginesContent />}
+        {activeMenu === "firefighters" && <FirefightersContent />}
+      </div>
+    );
   }
-
-  return (
-    <div className="flex flex-col items-center justify-center flex-1 px-6 py-8 mx-auto h-screen">
-      {activeMenu === "new-alarm" && <NewAlarmContent />}
-      {activeMenu === "alarms" && <AlarmsContent />}
-      {activeMenu === "fire-departments" && <FireDepartmentsContent />}
-      {activeMenu === "fire-engines" && <FireEnginesContent />}
-      {activeMenu === "firefighters" && <FirefightersContent />}
-    </div>
-  );
 };
 
 export default Dashboard;
