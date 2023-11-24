@@ -100,14 +100,16 @@ const Sidebar: React.FC<SidebarProps> = ({
           >
             Alarms
           </li>
-          <li
-            onClick={() => handleMenuClick("fire-departments")}
-            className={`px-4 py-2 text-white ${
-              activeMenu === "fire-departments" ? "bg-primary-500" : ""
-            } hover:bg-primary-500 hover:text-white cursor-pointer`}
-          >
-            Fire Departments
-          </li>
+          {userRole == "ADMIN" && (
+            <li
+              onClick={() => handleMenuClick("fire-departments")}
+              className={`px-4 py-2 text-white ${
+                activeMenu === "fire-departments" ? "bg-primary-500" : ""
+              } hover:bg-primary-500 hover:text-white cursor-pointer`}
+            >
+              Fire Departments
+            </li>
+          )}
           <li
             onClick={() => handleMenuClick("fire-engines")}
             className={`px-4 py-2 text-white ${
