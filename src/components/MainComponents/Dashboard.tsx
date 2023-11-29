@@ -7,7 +7,7 @@ import NewAlarmContent from "../NewAlarm/NewAlarmContent";
 import AlarmsContent from "../AlarmsContent";
 import FireDepartmentsContent from "../FireDepartments/FireDepartmentsContent";
 import FireEnginesContent from "../FireEnginesContent";
-import FirefightersContent from "../FirefightersContent";
+import FirefightersContent from "../Firefighters/FirefightersContent";
 import LoadingScreen from "../Helpers/LoadingScreen";
 
 interface JwtPayload {
@@ -23,9 +23,11 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
   const [username, setUsername] = useState<string>("");
   const [userRole, setUserRole] = useState<string>("");
-  const [hasFireDepartment, setHasFireDepartment] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasFireDepartment, setHasFireDepartment] = useState<
+    boolean | undefined
+  >(undefined);
   const [error, setError] = useState<string | null>(null);
+  const [isDataLoading, setIsDataLoading] = useState<boolean>(true);
 
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -69,27 +71,35 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
         );
 
         setHasFireDepartment(response.data.data);
-        setIsLoading(false);
       }
     } catch (error) {
       console.error("Error checking fire department:", error);
       setError("Error checking fire department");
+    } finally {
+      setIsDataLoading(false);
     }
   };
 
   useEffect(() => {
     const fetchData = async () => {
-      await fetchUserData();
-      if (username !== "" && userRole !== "") {
-        await checkFireDepartment();
+      try {
+        await fetchUserData();
+        if (username !== "" && userRole !== "") {
+          await checkFireDepartment();
+        }
+      } catch (error) {
+        console.error("Error during data fetching:", error);
+        setError("Error fetching data");
+      } finally {
+        // Leave this empty
       }
     };
 
     fetchData();
   }, [username, userRole]);
 
-  if (isLoading) {
-    return <LoadingScreen isLoading={isLoading} />;
+  if (isDataLoading) {
+    return <LoadingScreen isLoading={isDataLoading} />;
   }
 
   if (error) {
@@ -100,7 +110,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeMenu }) => {
     );
   }
 
-  if (!hasFireDepartment && userRole !== "ADMIN") {
+  if (userRole === "USER" && hasFireDepartment !== null && !hasFireDepartment) {
     return (
       <div className="flex items-center justify-center flex-1 px-6 py-8 mx-auto h-screen text-2xl">
         <p>Contact your fire chief to assign you to a fire department.</p>
