@@ -144,8 +144,8 @@ const AddFireDepartment: React.FC = () => {
 
       // Check if the request was successful
       if (response.status === 200) {
-        const responseData = response.data;
-        console.log("Response Data:", responseData);
+        //const responseData = response.data;
+        //console.log("Response Data:", responseData);
 
         // Reset input fields
         setAddressInput("");

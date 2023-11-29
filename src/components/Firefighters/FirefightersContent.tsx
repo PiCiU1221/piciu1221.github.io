@@ -3,6 +3,8 @@ import jwtDecode from "jwt-decode";
 import Cookies from "js-cookie";
 import axios from "axios";
 
+import AddFirefighter from "./AddFirefighter";
+
 import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -39,6 +41,7 @@ const FirefightersContent = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(0);
   const [nextPageCount, setNextPageCount] = useState<number>(0);
+  const [showAddForm, setShowAddForm] = useState<boolean>(false);
 
   const fetchUserRole = async (username: string) => {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -149,6 +152,14 @@ const FirefightersContent = () => {
     }
   };
 
+  const handleAddNewFirefighter = () => {
+    setShowAddForm(true);
+  };
+
+  const handleBackToFirefighters = () => {
+    setShowAddForm(false);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       const token = Cookies.get("token");
@@ -175,8 +186,24 @@ const FirefightersContent = () => {
 
   return (
     <div className="flex flex-col w-full h-screen px-8">
-      <h2 className="text-3xl mb-4 ml-6 font-semibold">Firefighters</h2>
-      {isLoading ? (
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-3xl font-semibold ml-6">Firefighters</h2>
+        <div className="flex items-center">
+          {userRole === "COMMANDER" && (
+            <button
+              className="bg-green-500 text-white rounded-lg py-2 px-4 w-64 mr-4 h-9 flex items-center justify-center"
+              onClick={
+                showAddForm ? handleBackToFirefighters : handleAddNewFirefighter
+              }
+            >
+              {showAddForm ? "Back" : "+ Add New Firefighter"}
+            </button>
+          )}
+        </div>
+      </div>
+      {showAddForm ? (
+        <AddFirefighter />
+      ) : isLoading ? (
         <div className="flex justify-center items-center flex-grow">
           <div className="loader"></div>
         </div>
