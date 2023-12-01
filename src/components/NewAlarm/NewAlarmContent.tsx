@@ -414,7 +414,7 @@ const NewAlarmContent = () => {
               <div key={department.departmentId} className="mb-4">
                 <button
                   className="bg-transparent hover:bg-gray-900 border border-white rounded py-1 px-2 w-full mb-2 flex flex-col items-center"
-                  onClick={() => {}}
+                  onClick={() => handleMarkerClick(department)}
                 >
                   <div className="mb-2">{department.departmentName}</div>
                   <div className="flex justify-between w-full">
