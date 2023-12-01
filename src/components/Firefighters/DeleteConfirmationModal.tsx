@@ -15,12 +15,17 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   onConfirm,
   firefighterName,
 }) => {
+  const overlayStyle = {
+    backgroundColor: "rgba(45, 45, 45, 0.8)",
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onRequestClose={onCancel}
       contentLabel="Delete Confirmation Modal"
       ariaHideApp={false}
+      style={{ overlay: overlayStyle }}
       className="delete-confirmation-modal"
     >
       <div>

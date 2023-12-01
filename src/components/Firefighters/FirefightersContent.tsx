@@ -342,7 +342,7 @@ const FirefightersContent = () => {
                       {userRole === "COMMANDER" && (
                         <div className="flex justify-end w-full">
                           <button
-                            className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600"
+                            className="bg-red-700 hover:bg-red-800 text-white p-2 rounded-lg"
                             onClick={() => handleDeleteFirefighter(firefighter)}
                           >
                             Delete
