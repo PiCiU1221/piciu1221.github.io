@@ -5,13 +5,19 @@ import Cookies from "js-cookie";
 import { FaCheckSquare, FaRegSquare } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
 
+interface AddFirefighterProps {
+  username: string;
+  refreshFirefighters: () => void;
+}
+
 const capitalizeFirstLetter = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
-// Define the AddFireDepartment component
-const AddFirefighter: React.FC = () => {
-  const [geocodedAddress, setGeocodedAddress] = useState<any | null>(null);
+const AddFirefighter: React.FC<AddFirefighterProps> = ({
+  username,
+  refreshFirefighters,
+}) => {
   const [firefighterUsername, setFirefighterUsername] = useState<string>("");
   const [firefighterFirstName, setFirefighterFirstName] = useState<string>("");
   const [firefighterSecondName, setFirefighterSecondName] =
@@ -55,9 +61,7 @@ const AddFirefighter: React.FC = () => {
     }
   };
 
-  const handleAddFireDepartment = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
+  const handleAddFirefighter = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (userExist === null || userExist === false) {
@@ -65,11 +69,12 @@ const AddFirefighter: React.FC = () => {
       return;
     }
 
-    // Prepare the data without making the actual request
+    // Concatenate first and second names
+    const fullName = `${firefighterFirstName} ${firefighterSecondName}`;
+
     const requestData = {
       firefighterUsername,
-      firefighterFirstName,
-      firefighterSecondName,
+      firefighterName: fullName,
       isDriver,
       isCommander,
       isTechnicalRescue,
@@ -79,19 +84,18 @@ const AddFirefighter: React.FC = () => {
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
       const response = await axios.post(
-        `${apiBaseUrl}/api/firefighters/add`,
+        `${apiBaseUrl}/api/firefighters/add-with-username?username=${username}`,
         requestData,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Include the token in the header
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      // Check if the request was successful
       if (response.status === 200) {
-        const responseData = response.data;
-        console.log("Response Data:", responseData);
+        //const responseData = response.data;
+        //console.log("Response Data:", responseData);
 
         // Reset input fields
         setFirefighterUsername("");
@@ -104,14 +108,15 @@ const AddFirefighter: React.FC = () => {
         // Show success popup
         setShowSuccessPopup(true);
         setSubmitError(null); // Clear any previous error
+        refreshFirefighters();
       } else {
-        const errorText = response.data || "Unknown error";
+        const errorText = response.data.data || "Unknown error";
         setSubmitError(`Error: ${errorText}`);
         console.error("Error:", errorText);
       }
     } catch (error: any) {
-      setSubmitError(`Error: ${error.message}`);
-      console.error("Error:", error.message);
+      console.error("Error:", error);
+      setSubmitError(`${error.response.data.message || error.message}`);
     }
   };
 
@@ -120,7 +125,7 @@ const AddFirefighter: React.FC = () => {
       <div className="w-full border flex-col flex p-4">
         <h2 className="text-2xl font-semibold mb-8">Add New Firefighter</h2>
         <form
-          onSubmit={handleAddFireDepartment}
+          onSubmit={handleAddFirefighter}
           className="flex flex-col h-full justify-between"
         >
           <div className="mt-16">
@@ -239,7 +244,7 @@ const AddFirefighter: React.FC = () => {
           </div>
 
           {submitError && (
-            <p className="text-red-500 mb-2 border border-red-500 p-2 rounded-md">
+            <p className="text-red-500 mb-2 border border-red-500 p-2 rounded-md mt-auto">
               {submitError}
             </p>
           )}

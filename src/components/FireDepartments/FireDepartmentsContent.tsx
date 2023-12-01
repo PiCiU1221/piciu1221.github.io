@@ -30,42 +30,41 @@ const FireDepartmentsContent: React.FC = () => {
     setShowAddForm(false);
   };
 
+  const fetchFireDepartments = async () => {
+    try {
+      const response = await axios.get<FireDepartment[]>(
+        `${apiBaseUrl}/api/fire-departments?page=${page}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setFireDepartments(response.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching fire departments:", error);
+    }
+  };
+
+  const fetchNextPageCount = async () => {
+    try {
+      const response = await axios.get<FireDepartment[]>(
+        `${apiBaseUrl}/api/fire-departments?page=${page + 1}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setNextPageCount(response.data.length);
+    } catch (error) {
+      console.error("Error fetching next page count:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchFireDepartments = async () => {
-      try {
-        const response = await axios.get<FireDepartment[]>(
-          `${apiBaseUrl}/api/fire-departments?page=${page}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setFireDepartments(response.data);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error fetching fire departments:", error);
-      }
-    };
-
     fetchFireDepartments();
-
-    const fetchNextPageCount = async () => {
-      try {
-        const response = await axios.get<FireDepartment[]>(
-          `${apiBaseUrl}/api/fire-departments?page=${page + 1}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setNextPageCount(response.data.length);
-      } catch (error) {
-        console.error("Error fetching next page count:", error);
-      }
-    };
-
     fetchNextPageCount();
   }, [page, token]);
 
@@ -87,6 +86,15 @@ const FireDepartmentsContent: React.FC = () => {
     }
   };
 
+  const refreshFireDepartments = async () => {
+    try {
+      await fetchFireDepartments();
+      await fetchNextPageCount();
+    } catch (error) {
+      console.error("Error refreshing firefighters:", error);
+    }
+  };
+
   return (
     <div className="flex flex-col w-full h-screen px-8">
       <div className="flex justify-between items-center mb-4">
@@ -103,7 +111,7 @@ const FireDepartmentsContent: React.FC = () => {
         </div>
       </div>
       {showAddForm ? (
-        <AddFireDepartment />
+        <AddFireDepartment refreshFireDepartments={refreshFireDepartments} />
       ) : isLoading ? (
         <div className="flex justify-center items-center flex-grow">
           <div className="loader"></div>

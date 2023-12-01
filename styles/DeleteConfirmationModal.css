@@ -1,0 +1,46 @@
+.delete-confirmation-modal {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border: 2px solid #e74c3c; /* Use the red color for the border */
+}
+
+.delete-confirmation-modal h2 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+}
+
+.delete-confirmation-modal p {
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.delete-confirmation-modal button.confirmButton {
+  background-color: #e74c3c; /* Confirm button color */
+  color: #fff;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.delete-confirmation-modal button.confirmButton:hover {
+  background-color: #c0392b; /* Hover color for the confirm button */
+}
+
+.delete-confirmation-modal button.cancelButton {
+  background-color: transparent; /* Transparent background for the cancel button */
+  color: #fff; /* Text color same as the border color */
+  padding: 10px 15px;
+  border: 2px solid #e74c3c;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.delete-confirmation-modal button.cancelButton:hover {
+  background-color: transparent; /* No hover effect for the cancel button */
+}

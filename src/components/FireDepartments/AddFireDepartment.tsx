@@ -6,6 +6,10 @@ import Cookies from "js-cookie";
 import { FaCheckSquare, FaRegSquare } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
 
+interface AddFirefighterProps {
+  refreshFireDepartments: () => void;
+}
+
 // Load FireDepartmentGeocodingMap dynamically
 const FireDepartmentGeocodingMapDynamic = dynamic(
   () => import("./FireDepartmentGeocodingMap"),
@@ -20,7 +24,9 @@ const capitalizeFirstLetter = (str: string) => {
 };
 
 // Define the AddFireDepartment component
-const AddFireDepartment: React.FC = () => {
+const AddFireDepartment: React.FC<AddFirefighterProps> = ({
+  refreshFireDepartments,
+}) => {
   const [addressInput, setAddressInput] = useState<string>("");
   const [geocodedAddress, setGeocodedAddress] = useState<any | null>(null);
   const [chiefUsername, setChiefUsername] = useState<string>("");
@@ -161,14 +167,15 @@ const AddFireDepartment: React.FC = () => {
         // Show success popup
         setShowSuccessPopup(true);
         setSubmitError(null); // Clear any previous error
+        refreshFireDepartments();
       } else {
         const errorText = response.data || "Unknown error";
         setSubmitError(`Error: ${errorText}`);
         console.error("Error:", errorText);
       }
     } catch (error: any) {
-      setSubmitError(`Error: ${error.message}`);
-      console.error("Error:", error.message);
+      console.error("Error:", error);
+      setSubmitError(`${error.response.data.message || error.message}`);
     }
   };
 

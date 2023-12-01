@@ -4,9 +4,11 @@ import Cookies from "js-cookie";
 import axios from "axios";
 
 import AddFirefighter from "./AddFirefighter";
+import DeleteConfirmationModal from "./DeleteConfirmationModal";
 
 import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { FaTimes } from "react-icons/fa";
 
 interface JwtPayload {
   sub: string;
@@ -42,6 +44,9 @@ const FirefightersContent = () => {
   const [page, setPage] = useState<number>(0);
   const [nextPageCount, setNextPageCount] = useState<number>(0);
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
+  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] =
+    useState<boolean>(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState<boolean>(false);
 
   const fetchUserRole = async (username: string) => {
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -99,6 +104,15 @@ const FirefightersContent = () => {
     }
   };
 
+  const refreshFirefighters = async () => {
+    try {
+      await fetchFirefighters(page);
+      await fetchNextPageCount();
+    } catch (error) {
+      console.error("Error refreshing firefighters:", error);
+    }
+  };
+
   const handleFirefighterClick = (firefighter: Firefighter) => {
     setSelectedFirefighter(
       firefighter === selectedFirefighter ? null : firefighter
@@ -152,6 +166,60 @@ const FirefightersContent = () => {
     }
   };
 
+  const handleDeleteFirefighter = (firefighter: Firefighter) => {
+    setSelectedFirefighter(firefighter);
+    setIsDeleteConfirmationOpen(true);
+  };
+
+  useEffect(() => {
+    if (showSuccessPopup) {
+      // Automatically hide the popup after 5 seconds
+      const timeoutId = setTimeout(() => {
+        setShowSuccessPopup(false);
+      }, 5000);
+
+      // Clear the timeout when the component unmounts or when the popup is manually closed
+      return () => clearTimeout(timeoutId);
+    }
+  }, [showSuccessPopup]);
+
+  const confirmDelete = async () => {
+    if (!selectedFirefighter) {
+      console.error("No firefighter selected for deletion.");
+      return;
+    }
+
+    const username = selectedFirefighter.firefighterUsername;
+
+    try {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+      const response = await axios.delete(
+        `${apiBaseUrl}/api/firefighters/${username}`,
+        {
+          headers: {
+            Authorization: `Bearer ${Cookies.get("token")}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        // Successful deletion, you may want to update the UI or fetch the firefighters again
+        console.log("Firefighter deleted successfully");
+      } else {
+        // Handle other status codes or errors
+        console.error("Error deleting firefighter");
+      }
+    } catch (error) {
+      console.error("Error deleting firefighter:", error);
+    }
+
+    // Close the modal after deletion
+    setIsDeleteConfirmationOpen(false);
+    setSelectedFirefighter(null);
+    setShowSuccessPopup(true);
+    refreshFirefighters();
+  };
+
   const handleAddNewFirefighter = () => {
     setShowAddForm(true);
   };
@@ -202,7 +270,10 @@ const FirefightersContent = () => {
         </div>
       </div>
       {showAddForm ? (
-        <AddFirefighter />
+        <AddFirefighter
+          username={username}
+          refreshFirefighters={refreshFirefighters}
+        />
       ) : isLoading ? (
         <div className="flex justify-center items-center flex-grow">
           <div className="loader"></div>
@@ -212,15 +283,13 @@ const FirefightersContent = () => {
           <ul>
             {firefighters.map((firefighter) => (
               <li key={firefighter.firefighterId} className="mb-2">
-                <button
-                  className={`w-full bg-gray-800 text-white p-2 rounded-lg border border-gray-300`}
-                  onClick={() => handleFirefighterClick(firefighter)}
-                  style={{
-                    height:
-                      selectedFirefighter === firefighter ? "auto" : "4rem",
-                  }}
+                <div
+                  className={`relative w-full bg-gray-800 text-white p-2 rounded-lg border border-gray-300`}
                 >
-                  <div className="flex justify-between text-left">
+                  <button
+                    onClick={() => handleFirefighterClick(firefighter)}
+                    className="flex justify-between items-center text-left w-full"
+                  >
                     <div>
                       <p className="font-semibold">
                         {firefighter.firefighterName}
@@ -229,11 +298,6 @@ const FirefightersContent = () => {
                         {firefighter.firefighterUsername}
                       </p>
                     </div>
-                    {userRole === "ADMIN" && (
-                      <p className="text-gray-400 ml-auto mr-2">
-                        {firefighter.fireDepartment.departmentName}
-                      </p>
-                    )}
                     <span
                       className={`float-right ${
                         selectedFirefighter === firefighter
@@ -243,38 +307,51 @@ const FirefightersContent = () => {
                     >
                       ↓
                     </span>
-                  </div>
+                  </button>
+
                   {selectedFirefighter === firefighter && (
-                    <div className="mt-4 flex items-center justify-center">
-                      <div className="flex">
-                        <p className="mr-4">
-                          Commander:{" "}
-                          {firefighter.firefighterCommander ? (
-                            <FontAwesomeIcon icon={faCheck} />
-                          ) : (
-                            <FontAwesomeIcon icon={faTimes} />
-                          )}
-                        </p>
-                        <p className="mr-4">
-                          Driver:{" "}
-                          {firefighter.firefighterDriver ? (
-                            <FontAwesomeIcon icon={faCheck} />
-                          ) : (
-                            <FontAwesomeIcon icon={faTimes} />
-                          )}
-                        </p>
-                        <p>
-                          Technical Rescue:{" "}
-                          {firefighter.firefighterTechnicalRescue ? (
-                            <FontAwesomeIcon icon={faCheck} />
-                          ) : (
-                            <FontAwesomeIcon icon={faTimes} />
-                          )}
-                        </p>
+                    <div>
+                      <div className="mt-4 flex items-center justify-center">
+                        <div className="flex items-center mb-2">
+                          <p className="mr-4">
+                            Commander:{" "}
+                            {firefighter.firefighterCommander ? (
+                              <FontAwesomeIcon icon={faCheck} />
+                            ) : (
+                              <FontAwesomeIcon icon={faTimes} />
+                            )}
+                          </p>
+                          <p className="mr-4">
+                            Driver:{" "}
+                            {firefighter.firefighterDriver ? (
+                              <FontAwesomeIcon icon={faCheck} />
+                            ) : (
+                              <FontAwesomeIcon icon={faTimes} />
+                            )}
+                          </p>
+                          <p>
+                            Technical Rescue:{" "}
+                            {firefighter.firefighterTechnicalRescue ? (
+                              <FontAwesomeIcon icon={faCheck} />
+                            ) : (
+                              <FontAwesomeIcon icon={faTimes} />
+                            )}
+                          </p>
+                        </div>
                       </div>
+                      {userRole === "COMMANDER" && (
+                        <div className="flex justify-end w-full">
+                          <button
+                            className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600"
+                            onClick={() => handleDeleteFirefighter(firefighter)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
-                </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -302,6 +379,30 @@ const FirefightersContent = () => {
               Next
             </button>
           </div>
+
+          <DeleteConfirmationModal
+            isOpen={isDeleteConfirmationOpen}
+            onCancel={() => setIsDeleteConfirmationOpen(false)}
+            onConfirm={confirmDelete}
+            firefighterName={
+              selectedFirefighter ? selectedFirefighter.firefighterName : ""
+            }
+          />
+        </div>
+      )}
+
+      {/* Success Popup */}
+      {showSuccessPopup && (
+        <div className="bg-yellow-600 text-white py-4 px-6 rounded absolute bottom-4 right-4 w-96 h-32 flex flex-col">
+          <span className="mb-auto mt-auto text-center">
+            Firefighter deleted successfully
+          </span>
+          <button
+            className="text-white absolute top-2 right-2 focus:outline-none"
+            onClick={() => setShowSuccessPopup(false)}
+          >
+            <FaTimes />
+          </button>
         </div>
       )}
     </div>

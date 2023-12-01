@@ -39,7 +39,79 @@ const NewAlarmContent = () => {
   const [showSuccessPopup, setShowSuccessPopup] = useState<boolean>(false);
   const [showStartupPopup, setShowStartupPopup] = useState(true);
 
+  // State for storing the closest fire departments
+  const [closestFireDepartments, setClosestFireDepartments] = useState<
+    FireDepartment[]
+  >([]);
+
   const token = Cookies.get("token"); // Get the token from cookies
+
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  const getClosestFireDepartments = async () => {
+    try {
+      if (!geocodedAddress) {
+        console.log("geocodedAddress is undefined. Skipping API call.");
+        return;
+      }
+
+      const apiKey = process.env.NEXT_PUBLIC_OPENROUTESERVICE_API_KEY;
+
+      const response = await axios.get<FireDepartment[]>(
+        `${apiBaseUrl}/api/fire-departments/closest`,
+        {
+          params: {
+            latitude: geocodedAddress.lat,
+            longitude: geocodedAddress.lon,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Fetch route information for each closest fire department
+      const updatedClosestFireDepartments = await Promise.all(
+        response.data.map(async (department) => {
+          try {
+            const routeResponse = await axios.get(
+              `https://api.openrouteservice.org/v2/directions/driving-car`,
+              {
+                params: {
+                  api_key: apiKey,
+                  start: `${geocodedAddress.lon},${geocodedAddress.lat}`,
+                  end: `${department.departmentLongitude},${department.departmentLatitude}`,
+                },
+              }
+            );
+
+            const route = routeResponse.data.features[0];
+            const distance = route.properties.segments[0].distance / 1000;
+            const duration = route.properties.segments[0].duration / 60;
+
+            // Update the department with distance and duration
+            return {
+              ...department,
+              distance,
+              duration,
+            };
+          } catch (error) {
+            console.error("Error fetching route:", error);
+            // If an error occurs while fetching route, return the department without distance and duration
+            return department;
+          }
+        })
+      );
+
+      // Update the state with the closest fire departments including time and distance
+      setClosestFireDepartments(updatedClosestFireDepartments);
+
+      // Handle the response, e.g., update state with the closest fire departments
+      console.log("Closest fire departments:", updatedClosestFireDepartments);
+    } catch (error) {
+      console.error("Error fetching closest fire departments:", error);
+    }
+  };
 
   // Handle form submission to geocode the address
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -147,11 +219,17 @@ const NewAlarmContent = () => {
     }
   };
 
+  // Run getClosestFireDepartments whenever geocodedAddress changes
+  useEffect(() => {
+    // Ensure geocodedAddress is available before calling the function
+    if (geocodedAddress) {
+      getClosestFireDepartments();
+    }
+  }, [geocodedAddress]);
+
   // Fetch fire departments on component mount
   useEffect(() => {
     const fetchFireDepartments = async () => {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-
       try {
         const response = await axios.get<FireDepartment[]>(
           `${apiBaseUrl}/api/fire-departments/all`,
@@ -209,8 +287,6 @@ const NewAlarmContent = () => {
       };
 
       try {
-        const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-
         const response = await axios.post(
           `${apiBaseUrl}/api/alarm/dispatch`,
           alarmData,
@@ -321,6 +397,50 @@ const NewAlarmContent = () => {
 
         {/* Display selected fire departments */}
         <div className="flex-3 border p-4" style={{ flex: "0 0 30%" }}>
+          {closestFireDepartments.length > 0 && (
+            <h3 className="text-lg font-semibold mb-4 text-center">
+              Closest Fire Departments:
+            </h3>
+          )}
+          {closestFireDepartments
+            .filter(
+              (department) =>
+                !selectedFireDepartments.some(
+                  (selectedDep) =>
+                    selectedDep.departmentId === department.departmentId
+                )
+            )
+            .map((department) => (
+              <div key={department.departmentId} className="mb-4">
+                <button
+                  className="bg-transparent hover:bg-gray-900 border border-white rounded py-1 px-2 w-full mb-2 flex flex-col items-center"
+                  onClick={() => {}}
+                >
+                  <div className="mb-2">{department.departmentName}</div>
+                  <div className="flex justify-between w-full">
+                    <div>
+                      <p>
+                        Distance:{" "}
+                        {department.distance !== undefined
+                          ? `${department.distance.toFixed(2)} kilometers`
+                          : "Loading..."}
+                      </p>
+                    </div>
+                    <div>
+                      <p>
+                        Duration:{" "}
+                        {department.duration !== undefined
+                          ? department.duration.toFixed(2) + " minutes"
+                          : "Loading... "}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            ))}
+          {closestFireDepartments.length > 0 && (
+            <hr className="border-b-1 border-white mb-6 mt-8" />
+          )}
           <h3 className="text-lg font-semibold mb-4 text-center">
             Selected Fire Departments:
           </h3>
@@ -391,6 +511,7 @@ const NewAlarmContent = () => {
           ))}
         </div>
       </div>
+
       {/* Success Popup */}
       {showSuccessPopup && (
         <div className="bg-green-500 text-white py-4 px-6 rounded absolute bottom-4 right-4 w-96 h-32 flex flex-col">
