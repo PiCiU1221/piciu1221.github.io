@@ -298,6 +298,11 @@ const FirefightersContent = () => {
                         {firefighter.firefighterUsername}
                       </p>
                     </div>
+                    {userRole === "ADMIN" && (
+                      <p className="text-right text-gray-400">
+                        {firefighter.fireDepartment.departmentName}
+                      </p>
+                    )}
                     <span
                       className={`float-right ${
                         selectedFirefighter === firefighter
